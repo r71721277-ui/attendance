@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark Attendance</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 450px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .session-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+            border: 2px dashed #dee2e6;
+        }
+
+        .session-info.active {
+            background: linear-gradient(135deg, #28a74515 0%, #20c99715 100%);
+            border: 2px solid #28a745;
+        }
+
+        .session-status {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #6c757d;
+        }
+
+        .session-status.active {
+            color: #28a745;
+        }
+
+        .timer {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            margin: 15px 0;
+        }
+
+        .timer.warning {
+            color: #ffc107;
+        }
+
+        .timer.danger {
+            color: #dc3545;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .info-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .student-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .student-info div {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .student-info div:last-child {
+            margin-bottom: 0;
+        }
+
+        .student-info strong {
+            color: #333;
+        }
+
+        .student-info span {
+            color: #666;
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .steps {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+
+        .steps strong {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .steps ol {
+            margin-left: 20px;
+            color: #666;
+        }
+
+        .steps li {
+            margin-bottom: 5px;
+        }
+
+        .load-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            padding: 12px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📍 Mark Attendance</h1>
+        <p class="subtitle">Smart Attendance System</p>
+
+        <div class="session-info" id="sessionInfo">
+            <div class="session-status" id="sessionStatus">
+                ⭕ No Active Session
+            </div>
+            <div class="info-text" id="sessionDetails">
+                Waiting for teacher to start attendance...
+            </div>
+            <div class="timer" id="timer" style="display: none;">--:--</div>
+        </div>
+
+        <div class="student-info" id="studentInfo" style="display: none;">
+            <div>
+                <strong>Student ID:</strong>
+                <span id="displayStudentId">--</span>
+            </div>
+            <div>
+                <strong>Name:</strong>
+                <span id="displayName">--</span>
+            </div>
+            <div>
+                <strong>Division:</strong>
+                <span id="displayDivision">--</span>
+            </div>
+        </div>
+
+        <button class="load-btn" onclick="loadStudentInfo()">
+            Load My Info
+        </button>
+
+        <button id="markBtn" onclick="markAttendance()" disabled>
+            🔍 Mark Attendance
+        </button>
+
+        <div class="loader" id="loader"></div>
+        <div class="status" id="status"></div>
+
+        <div class="steps">
+            <strong>📋 Steps:</strong>
+            <ol>
+                <li>Click "Load My Info"</li>
+                <li>Wait for teacher to start session</li>
+                <li>Click "Mark Attendance"</li>
+                <li>Scan fingerprint/face</li>
+                <li>Stay near classroom beacon</li>
+            </ol>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbBfEARko5dak8bGHH8N3Qt-5V6umjwsE",
+            authDomain: "habdrr-1faf1.firebaseapp.com",
+            databaseURL: "https://habdrr-1faf1-default-rtdb.firebaseio.com",
+            projectId: "habdrr-1faf1",
+            storageBucket: "habdrr-1faf1.firebasestorage.app",
+            messagingSenderId: "1060633378498",
+            appId: "1:1060633378498:web:25bb2eef8e17139a4ac55b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        window.database = database;
+        window.dbRef = ref;
+        window.dbGet = get;
+
+        checkForActiveSession();
+    </script>
+
+    <script>
+        const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+        const CHAR_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
+        
+        let currentSession = null;
+        let studentData = null;
+        let deviceId = localStorage.getItem('deviceId') || '';
+        let sessionCheckInterval = null;
+        let timerInterval = null;
+
+        function loadStudentInfo() {
+            if (!deviceId) {
+                showStatus('❌ Device not registered. Please register first.', 'error');
+                return;
+            }
+
+            const studentId = prompt('Enter your Student ID:');
+            if (!studentId) return;
+
+            const studentRef = window.dbRef(window.database, `students/${studentId}`);
+            window.dbGet(studentRef).then(snapshot => {
+                if (snapshot.exists()) {
+                    studentData = snapshot.val();
+                    studentData.studentId = studentId;
+                    displayStudentInfo();
+                    showStatus('✅ Student info loaded', 'success');
+                    setTimeout(() => showStatus('', ''), 2000);
+                } else {
+                    showStatus('❌ Student ID not found. Please register first.', 'error');
+                }
+            }).catch(error => {
+                showStatus('❌ Error loading info: ' + error.message, 'error');
+            });
+        }
+
+        function displayStudentInfo() {
+            document.getElementById('studentInfo').style.display = 'block';
+            document.getElementById('displayStudentId').textContent = studentData.studentId;
+            document.getElementById('displayName').textContent = studentData.name;
+            document.getElementById('displayDivision').textContent = studentData.division;
+        }
+
+        function checkForActiveSession() {
+            if (sessionCheckInterval) clearInterval(sessionCheckInterval);
+            
+            sessionCheckInterval = setInterval(() => {
+                const todayDate = getTodayDate();
+                const sessionsRef = window.dbRef(window.database, `attendance_sessions/room301/${todayDate}`);
+                
+                window.dbGet(sessionsRef).then(snapshot => {
+                    if (snapshot.exists()) {
+                        const sessions = snapshot.val();
+                        let foundActive = false;
+                        
+                        Object.keys(sessions).forEach(sessionId => {
+                            const session = sessions[sessionId];
+                            if (session.status === 'ACTIVE') {
+                                foundActive = true;
+                                if (!currentSession || currentSession.sessionId !== sessionId) {
+                                    currentSession = { ...session, sessionId };
+                                    updateSessionUI(true);
+                                    startTimer(session.endTime);
+                                }
+                            }
+                        });
+                        
+                        if (!foundActive && currentSession) {
+                            currentSession = null;
+                            updateSessionUI(false);
+                        }
+                    } else if (currentSession) {
+                        currentSession = null;
+                        updateSessionUI(false);
+                    }
+                }).catch(error => {
+                    console.error('Session check error:', error);
+                });
+            }, 3000);
+        }
+
+        function updateSessionUI(active) {
+            const sessionInfo = document.getElementById('sessionInfo');
+            const sessionStatus = document.getElementById('sessionStatus');
+            const sessionDetails = document.getElementById('sessionDetails');
+            const markBtn = document.getElementById('markBtn');
+            const timer = document.getElementById('timer');
+
+            if (active) {
+                sessionInfo.className = 'session-info active';
+                sessionStatus.className = 'session-status active';
+                sessionStatus.textContent = '✅ Session Active';
+                sessionDetails.textContent = `${currentSession.classroom} - ${currentSession.division}`;
+                timer.style.display = 'block';
+                markBtn.disabled = !studentData;
+            } else {
+                sessionInfo.className = 'session-info';
+                sessionStatus.className = 'session-status';
+                sessionStatus.textContent = '⭕ No Active Session';
+                sessionDetails.textContent = 'Waiting for teacher to start attendance...';
+                timer.style.display = 'none';
+                markBtn.disabled = true;
+                if (timerInterval) clearInterval(timerInterval);
+            }
+        }
+
+        function startTimer(endTime) {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                const now = new Date();
+                const end = new Date();
+                const [hours, minutes, seconds] = endTime.split(':');
+                end.setHours(parseInt(hours), parseInt(minutes), parseInt(seconds));
+                
+                const diff = end - now;
+                
+                if (diff <= 0) {
+                    document.getElementById('timer').textContent = '00:00';
+                    clearInterval(timerInterval);
+                    return;
+                }
+                
+                const remainingSeconds = Math.floor(diff / 1000);
+                const mins = Math.floor(remainingSeconds / 60);
+                const secs = remainingSeconds % 60;
+                
+                const timerEl = document.getElementById('timer');
+                timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                
+                if (remainingSeconds < 20) {
+                    timerEl.className = 'timer danger';
+                } else if (remainingSeconds < 40) {
+                    timerEl.className = 'timer warning';
+                } else {
+                    timerEl.className = 'timer';
+                }
+            }, 1000);
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+            status.style.display = message ? 'block' : 'none';
+        }
+
+        function showLoader(show) {
+            document.getElementById('loader').style.display = show ? 'block' : 'none';
+            document.getElementById('markBtn').disabled = show || !currentSession || !studentData;
+        }
+
+        async function verifyBiometric() {
+            try {
+                const challenge = new Uint8Array(32);
+                crypto.getRandomValues(challenge);
+
+                const publicKey = {
+                    challenge: challenge,
+                    rp: { name: "Smart Attendance", id: window.location.hostname },
+                    user: {
+                        id: new Uint8Array(16),
+                        name: studentData.studentId,
+                        displayName: studentData.name
+                    },
+                    pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+                    authenticatorSelection: {
+                        authenticatorAttachment: "platform",
+                        userVerification: "required"
+                    },
+                    timeout: 60000
+                };
+
+                const credential = await navigator.credentials.get({ publicKey });
+                return credential !== null;
+            } catch (error) {
+                throw new Error('Biometric verification failed');
+            }
+        }
+
+        async function markAttendance() {
+            if (!studentData) {
+                showStatus('❌ Please load your student info first', 'error');
+                return;
+            }
+
+            if (!currentSession) {
+                showStatus('❌ No active session', 'error');
+                return;
+            }
+
+            showLoader(true);
+            showStatus('🔐 Verifying biometric...', 'info');
+
+            try {
+                await verifyBiometric();
+                showStatus('✅ Biometric verified! Scanning for beacon...', 'info');
+
+                if (!navigator.bluetooth) {
+                    throw new Error('Bluetooth not supported. Use Chrome on Android or Safari on iOS.');
+                }
+
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: [SERVICE_UUID] }]
+                });
+
+                showStatus('📡 Connecting to beacon...', 'info');
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService(SERVICE_UUID);
+                const characteristic = await service.getCharacteristic(CHAR_UUID);
+
+                const value = await characteristic.readValue();
+                const beaconData = new TextDecoder().decode(value);
+                const [classroom, sessionId, beaconRound] = beaconData.split('|');
+
+                if (sessionId === 'inactive') {
+                    throw new Error('Beacon session not active');
+                }
+
+                showStatus('📤 Marking attendance...', 'info');
+
+                const nonce = 'nonce_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                const timestamp = new Date().toISOString();
+                const rssi = -50;
+
+                const attendanceData = `${studentData.studentId}|${nonce}|${beaconRound}|${rssi}|${timestamp}`;
+                await characteristic.writeValue(new TextEncoder().encode(attendanceData));
+
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                const response = await characteristic.readValue();
+                const result = new TextDecoder().decode(response);
+
+                device.gatt.disconnect();
+
+                if (result === 'SUCCESS') {
+                    showStatus('✅ Attendance marked successfully!', 'success');
+                } else {
+                    throw new Error(result.replace('ERROR:', ''));
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('❌ ' + error.message, 'error');
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        function getTodayDate() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        window.loadStudentInfo = loadStudentInfo;
+        window.markAttendance = markAttendance;
+    </script>
+</body>
+</html>

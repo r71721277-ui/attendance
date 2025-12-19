@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .session-status {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .session-status.active {
+            background: linear-gradient(135deg, #28a74515 0%, #20c99715 100%);
+            color: #28a745;
+            border: 2px solid #28a745;
+        }
+
+        .timer-display {
+            font-size: 48px;
+            font-weight: 700;
+            color: #667eea;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .timer-display.warning {
+            color: #ffc107;
+        }
+
+        .timer-display.danger {
+            color: #dc3545;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .live-feed {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .attendance-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #28a745;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .summary-section {
+            display: none;
+        }
+
+        .summary-section.show {
+            display: block;
+        }
+
+        .absent-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .absent-item {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👨‍🏫 Teacher Portal</h1>
+            <p>Smart Attendance Management System</p>
+        </div>
+
+        <div class="card">
+            <h2>⚙️ Session Configuration</h2>
+            
+            <div class="form-group">
+                <label for="classroom">Classroom</label>
+                <select id="classroom">
+                    <option value="room301">Room 301</option>
+                    <option value="room302">Room 302</option>
+                    <option value="room303">Room 303</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="division">Division</label>
+                <select id="division">
+                    <option value="A-Division">A-Division</option>
+                    <option value="B-Division">B-Division</option>
+                    <option value="C-Division">C-Division</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="duration">Attendance Window Duration</label>
+                <select id="duration">
+                    <option value="60">60 seconds</option>
+                    <option value="90" selected>90 seconds</option>
+                    <option value="120">120 seconds</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-primary" id="startBtn" onclick="startSession()">
+                    🟢 START ATTENDANCE
+                </button>
+            </div>
+        </div>
+
+        <div class="card" id="activeSessionCard" style="display: none;">
+            <h2>📊 Live Session</h2>
+            
+            <div class="session-status active">
+                ✅ Session Active
+            </div>
+
+            <div class="timer-display" id="sessionTimer">01:30</div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="presentCount">0</div>
+                    <div class="stat-label">Present</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalCount">50</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="percentCount">0%</div>
+                    <div class="stat-label">Attendance %</div>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%">0%</div>
+            </div>
+
+            <h3 style="margin: 20px 0 15px 0;">Recent Attendance:</h3>
+            <div class="live-feed" id="liveFeed">
+                <div style="text-align: center; color: #999;">Waiting...</div>
+            </div>
+
+            <div class="btn-group" style="margin-top: 20px;">
+                <button class="btn-danger" onclick="stopSession()">
+                    🔴 STOP
+                </button>
+                <button class="btn-secondary" onclick="showManualOverride()">
+                    ⚙️ MANUAL
+                </button>
+            </div>
+        </div>
+
+        <div class="card summary-section" id="summaryCard">
+            <h2>📋 Session Summary</h2>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="summaryPresent">0</div>
+                    <div class="stat-label">Present</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="summaryAbsent">0</div>
+                    <div class="stat-label">Absent</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="summaryPercent">0%</div>
+                    <div class="stat-label">Percentage</div>
+                </div>
+            </div>
+
+            <h3 style="margin: 20px 0 15px 0;">Absent Students:</h3>
+            <div class="absent-list" id="absentList"></div>
+
+            <div class="btn-group" style="margin-top: 30px;">
+                <button class="btn-secondary" onclick="downloadReport()">
+                    📥 DOWNLOAD
+                </button>
+                <button class="btn-primary" onclick="resetForNewSession()">
+                    ➕ NEW SESSION
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, get, onValue, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbBfEARko5dak8bGHH8N3Qt-5V6umjwsE",
+            authDomain: "habdrr-1faf1.firebaseapp.com",
+            databaseURL: "https://habdrr-1faf1-default-rtdb.firebaseio.com",
+            projectId: "habdrr-1faf1",
+            storageBucket: "habdrr-1faf1.firebasestorage.app",
+            messagingSenderId: "1060633378498",
+            appId: "1:1060633378498:web:25bb2eef8e17139a4ac55b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        window.database = database;
+        window.dbRef = ref;
+        window.dbSet = set;
+        window.dbGet = get;
+        window.dbOnValue = onValue;
+        window.dbUpdate = update;
+    </script>
+
+    <script>
+        let currentSessionId = null;
+        let sessionEndTime = null;
+        let timerInterval = null;
+        let markedStudents = [];
+        const TOTAL_STUDENTS = 50;
+
+        function startSession() {
+            const classroom = document.getElementById('classroom').value;
+            const division = document.getElementById('division').value;
+            const duration = parseInt(document.getElementById('duration').value);
+
+            const now = new Date();
+            const endTime = new Date(now.getTime() + duration * 1000);
+            
+            currentSessionId = 'session_' + Date.now();
+            sessionEndTime = endTime;
+
+            const todayDate = getTodayDate();
+            const sessionPath = `attendance_sessions/${classroom}/${todayDate}/${currentSessionId}`;
+
+            const sessionData = {
+                sessionToken: 'token_' + Date.now(),
+                status: 'ACTIVE',
+                startTime: formatTime(now),
+                endTime: formatTime(endTime),
+                teacherID: 'PROF001',
+                division: division,
+                classroom: classroom,
+                currentBeaconID: 'beacon_' + Date.now() + '_round_1',
+                markedStudents: {}
+            };
+
+            window.dbSet(window.dbRef(window.database, sessionPath), sessionData)
+                .then(() => {
+                    showActiveSession();
+                    startTimer();
+                    listenToAttendance(classroom, todayDate);
+                })
+                .catch(error => alert('Error: ' + error.message));
+        }
+
+        function showActiveSession() {
+            document.getElementById('activeSessionCard').style.display = 'block';
+            document.getElementById('summaryCard').classList.remove('show');
+            document.getElementById('startBtn').disabled = true;
+            markedStudents = [];
+            updateStats();
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                const now = new Date();
+                const diff = sessionEndTime - now;
+
+                if (diff <= 0) {
+                    clearInterval(timerInterval);
+                    stopSession();
+                    return;
+                }
+
+                const remainingSeconds = Math.floor(diff / 1000);
+                const mins = Math.floor(remainingSeconds / 60);
+                const secs = remainingSeconds % 60;
+
+                const timerEl = document.getElementById('sessionTimer');
+                timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+                if (remainingSeconds < 20) {
+                    timerEl.className = 'timer-display danger';
+                } else if (remainingSeconds < 40) {
+                    timerEl.className = 'timer-display warning';
+                } else {
+                    timerEl.className = 'timer-display';
+                }
+            }, 1000);
+        }
+
+        function listenToAttendance(classroom, date) {
+            const markedPath = `attendance_sessions/${classroom}/${date}/${currentSessionId}/markedStudents`;
+            const markedRef = window.dbRef(window.database, markedPath);
+
+            window.dbOnValue(markedRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    markedStudents = Object.keys(data).map(studentId => ({
+                        studentId,
+                        ...data[studentId]
+                    }));
+                    
+                    updateLiveFeed();
+                    updateStats();
+                }
+            });
+        }
+
+        function updateLiveFeed() {
+            const liveFeed = document.getElementById('liveFeed');
+            
+            if (markedStudents.length === 0) {
+                liveFeed.innerHTML = '<div style="text-align: center; color: #999;">Waiting...</div>';
+                return;
+            }
+
+            const sorted = [...markedStudents].sort((a, b) => 
+                new Date(b.timestamp) - new Date(a.timestamp)
+            );
+
+            liveFeed.innerHTML = sorted.slice(0, 10).map(s => `
+                <div class="attendance-item">
+                    <strong>${s.studentId}</strong> - ${new Date(s.timestamp).toLocaleTimeString()}
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            const present = markedStudents.length;
+            const percent = Math.round((present / TOTAL_STUDENTS) * 100);
+
+            document.getElementById('presentCount').textContent = present;
+            document.getElementById('totalCount').textContent = TOTAL_STUDENTS;
+            document.getElementById('percentCount').textContent = percent + '%';
+            
+            const bar = document.getElementById('progressBar');
+            bar.style.width = percent + '%';
+            bar.textContent = percent + '%';
+        }
+
+        function stopSession() {
+            if (timerInterval) clearInterval(timerInterval);
+
+            const classroom = document.getElementById('classroom').value;
+            const todayDate = getTodayDate();
+            const path = `attendance_sessions/${classroom}/${todayDate}/${currentSessionId}`;
+
+            window.dbUpdate(window.dbRef(window.database, path), { status: 'CLOSED' })
+                .then(() => showSummary());
+        }
+
+        function showSummary() {
+            document.getElementById('activeSessionCard').style.display = 'none';
+            document.getElementById('summaryCard').classList.add('show');
+
+            const present = markedStudents.length;
+            const absent = TOTAL_STUDENTS - present;
+            const percent = Math.round((present / TOTAL_STUDENTS) * 100);
+
+            document.getElementById('summaryPresent').textContent = present;
+            document.getElementById('summaryAbsent').textContent = absent;
+            document.getElementById('summaryPercent').textContent = percent + '%';
+
+            const absentList = document.getElementById('absentList');
+            const absentStudents = [];
+            for (let i = 1; i <= TOTAL_STUDENTS; i++) {
+                const id = 'CS2024' + String(i).padStart(3, '0');
+                if (!markedStudents.find(s => s.studentId === id)) {
+                    absentStudents.push(id);
+                }
+            }
+
+            absentList.innerHTML = absentStudents.map(id => 
+                `<div class="absent-item">❌ ${id}</div>`
+            ).join('');
+        }
+
+        function showManualOverride() {
+            const studentId = prompt('Enter Student ID:');
+            if (!studentId) return;
+
+            const classroom = document.getElementById('classroom').value;
+            const todayDate = getTodayDate();
+            const path = `attendance_sessions/${classroom}/${todayDate}/${currentSessionId}/markedStudents/${studentId}`;
+
+            const data = {
+                timestamp: new Date().toISOString(),
+                status: 'present',
+                markedBy: 'manual',
+                biometricVerified: false
+            };
+
+            window.dbSet(window.dbRef(window.database, path), data)
+                .then(() => alert('Marked: ' + studentId))
+                .catch(error => alert('Error: ' + error.message));
+        }
+
+        function downloadReport() {
+            const classroom = document.getElementById('classroom').value;
+            const division = document.getElementById('division').value;
+            const date = getTodayDate();
+
+            let csv = 'Student ID,Status,Timestamp\n';
+            
+            markedStudents.forEach(s => {
+                csv += `${s.studentId},Present,${s.timestamp}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `attendance_${classroom}_${division}_${date}.csv`;
+            a.click();
+        }
+
+        function resetForNewSession() {
+            document.getElementById('summaryCard').classList.remove('show');
+            document.getElementById('activeSessionCard').style.display = 'none';
+            document.getElementById('startBtn').disabled = false;
+            currentSessionId = null;
+            markedStudents = [];
+        }
+
+        function getTodayDate() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function formatTime(date) {
+            return date.toTimeString().split(' ')[0];
+        }
+
+        window.startSession = startSession;
+        window.stopSession = stopSession;
+        window.showManualOverride = showManualOverride;
+        window.downloadReport = downloadReport;
+        window.resetForNewSession = resetForNewSession;
+    </script>
+</body>
+</html>
